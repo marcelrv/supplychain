@@ -1,453 +1,327 @@
 <!DOCTYPE html>
 <html>
-
 <head>
     <meta charset="utf-8">
     <title>Routes drawer</title>
     <!-- Leaflet CSS -->
     <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
     <!-- FontAwesome CSS for transport icons (integrity attribute removed) -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
-        crossorigin="anonymous" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" crossorigin="anonymous" />
     <style>
         /* Basic styling for layout and controls */
-        body {
-            margin: 0;
-            padding: 0;
-            font-family: Arial, sans-serif;
-        }
-
-        #container {
-            display: flex;
-            height: 100vh;
-        }
-
-        #controls {
-            width: 320px;
-            padding: 10px;
-            background: #f4f4f4;
-            overflow-y: auto;
-            box-sizing: border-box;
-        }
-
-        #map {
-            flex: 1;
-        }
-
-        input,
-        button,
-        select {
-            width: 100%;
-            margin: 5px 0;
-            padding: 5px;
-            box-sizing: border-box;
-        }
-
-        hr {
-            margin: 10px 0;
-        }
-
-        table {
-            width: 100%;
-            border-collapse: collapse;
-            margin-top: 10px;
-        }
-
-        table,
-        th,
-        td {
-            border: 1px solid #ccc;
-        }
-
-        th,
-        td {
-            padding: 5px;
-            text-align: left;
-        }
-
+        body { margin: 0; padding: 0; font-family: Arial, sans-serif; }
+        #container { display: flex; height: 100vh; }
+        #controls { width: 320px; padding: 10px; background: #f4f4f4; overflow-y: auto; box-sizing: border-box; }
+        #map { flex: 1; }
+        input, button, select { width: 100%; margin: 5px 0; padding: 5px; box-sizing: border-box; }
+        hr { margin: 10px 0; }
+        table { width: 100%; border-collapse: collapse; margin-top: 10px; }
+        table, th, td { border: 1px solid #ccc; }
+        th, td { padding: 5px; text-align: left; }
         /* Optional styling for the transport icon markers */
-        .transport-icon {
-            text-align: center;
-            line-height: 24px;
-        }
+        .transport-icon { text-align: center; line-height: 24px; }
     </style>
 </head>
-
 <body>
-    <div id="container">
-        <!-- Controls / Data Entry Panel -->
-        <div id="controls">
-            <h2>Add Route</h2>
-            <label for="fromInput">From (City/County):</label>
-            <input type="text" id="fromInput" placeholder="e.g. New York, USA">
-            <label for="fromNameInput">From Location Name (optional):</label>
-            <input type="text" id="fromNameInput" placeholder="e.g. Home">
-            <label for="toInput">To (City/County):</label>
-            <input type="text" id="toInput" placeholder="e.g. London, UK">
-            <label for="toNameInput">To Location Name (optional):</label>
-            <input type="text" id="toNameInput" placeholder="e.g. Office">
-            <label for="volumeInput">Volume (numeric):</label>
-            <input type="number" id="volumeInput" placeholder="e.g. 1" min="1" value="1">
-            <label for="colorInput">Line Color:</label>
-            <input type="color" id="colorInput" value="#ff0000">
-            <!-- Mode of Transport -->
-            <label for="modeInput">Mode of Transport:</label>
-            <select id="modeInput">
-                <option value="none">None</option>
-                <option value="air">Air</option>
-                <option value="road">Road</option>
-                <option value="sea">Sea</option>
-            </select>
-            <button id="addRouteBtn">Add Route</button>
-            <h2>Routes</h2>
-            <table id="routesTable">
-                <thead>
-                    <tr>
-                        <th>From (City)</th>
-                        <th>From Label</th>
-                        <th>To (City)</th>
-                        <th>To Label</th>
-                        <th>Volume</th>
-                        <th>Mode</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <!-- Routes will be listed here -->
-                </tbody>
-            </table>
-            <h2>Data</h2>
-            <button id="downloadBtn">Download Data</button>
-            <input type="file" id="uploadInput" accept=".json">
-            <hr>
-            <label for="maxThicknessInput">Max Line Thickness (for largest volume, default 10):</label>
-            <input type="number" id="maxThicknessInput" placeholder="e.g. 10" min="1" value="10">
-        </div>
-        <!-- Map Container -->
-        <div id="map"></div>
+<div id="container">
+    <!-- Controls / Data Entry Panel -->
+    <div id="controls">
+        <h2>Add Route</h2>
+        <label for="fromInput">From (City/County):</label>
+        <input type="text" id="fromInput" placeholder="e.g. New York, USA">
+        <label for="fromNameInput">From Location Name (optional):</label>
+        <input type="text" id="fromNameInput" placeholder="e.g. Home">
+        <label for="toInput">To (City/County):</label>
+        <input type="text" id="toInput" placeholder="e.g. London, UK">
+        <label for="toNameInput">To Location Name (optional):</label>
+        <input type="text" id="toNameInput" placeholder="e.g. Office">
+        <label for="volumeInput">Volume (numeric):</label>
+        <input type="number" id="volumeInput" placeholder="e.g. 1" min="1" value="1">
+        <label for="colorInput">Line Color:</label>
+        <input type="color" id="colorInput" value="#ff0000">
+        <!-- Mode of Transport -->
+        <label for="modeInput">Mode of Transport:</label>
+        <select id="modeInput">
+            <option value="none">None</option>
+            <option value="air">Air</option>
+            <option value="road">Road</option>
+            <option value="sea">Sea</option>
+        </select>
+        <button id="addRouteBtn">Add Route</button>
+        <h2>Routes <i id="clearRoutesBtn" class="fa fa-trash" style="cursor: pointer;"></i></h2>
+        <table id="routesTable">
+            <thead>
+            <tr>
+                <th>From (City)</th>
+                <th>From Label</th>
+                <th>To (City)</th>
+                <th>To Label</th>
+                <th>Volume</th>
+                <th>Mode</th>
+            </tr>
+            </thead>
+            <tbody>
+            <!-- Routes will be listed here -->
+            </tbody>
+        </table>
+        <h2>Data</h2>
+        <button id="downloadBtn">Download Data</button>
+        <input type="file" id="uploadInput" accept=".json">
+        <hr>
+        <label for="maxThicknessInput">Max Line Thickness (for largest volume, default 10):</label>
+        <input type="number" id="maxThicknessInput" placeholder="e.g. 10" min="1" value="10">
     </div>
-    <!-- Leaflet JS -->
-    <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
-    <!-- PolylineDecorator plugin (version 1.6.0) -->
-    <script
-        src="https://unpkg.com/leaflet-polylinedecorator@1.6.0/dist/leaflet.polylineDecorator.js">
-    </script>
-    <script>
-        /*****************************************************************
-         * Polyfill for L.Symbol.arrowHead if not defined by the plugin.
-         * This ensures an arrowhead symbol is available.
-         *****************************************************************/
-        if (!L.Symbol) {
-            L.Symbol = {};
-        }
-        if (!L.Symbol.arrowHead) {
-            L.Symbol.ArrowHead = L.Class.extend({
-                options: {
-                    pixelSize: 15,
-                    polygon: true, // Default pathOptions (the weight is overridden later)
-                    pathOptions: {
-                        stroke: true,
-                        color: 'red',
-                        weight: 1
-                    }
-                },
-                initialize: function (options) {
-                    L.Util.setOptions(this, options);
-                },
-                buildSymbol: function (latLng, map) {
-                    var size = this.options.pixelSize;
-                    // A simple triangle (arrowhead) in pixel coordinates.
-                    var arrow = [
-                        L.point(0, 0),
-                        L.point(-size, size / 2),
-                        L.point(-size, -size / 2)
-                    ];
-                    if (this.options.polygon) {
-                        arrow.push(L.point(0, 0));
-                    }
-                    return arrow;
-                }
-            });
-            L.Symbol.arrowHead = function (options) {
-                return new L.Symbol.ArrowHead(options);
-            };
-        }
-        // Global variables
-        let map;
-        let routes = []; // Array to hold route objects.
-        let routesLayerGroup;
+    <!-- Map Container -->
+    <div id="map"></div>
+</div>
 
-        // Initialize the Leaflet map.
-        function initMap() {
-            map = L.map('map').setView([20, 0], 2);
-            // Use a basemap with no labels (so no country names appear)
-            L.tileLayer(
-                'https://{s}.basemaps.cartocdn.com/light_nolabels/{z}/{x}/{y}{r}.png',
-                {
-                    attribution: '© OpenStreetMap contributors, © CARTO'
-                }
-            ).addTo(map);
-            routesLayerGroup = L.layerGroup().addTo(map);
-            // Redraw routes when the map is moved or zoomed (to update the curves).
-            map.on('zoomend moveend', drawRoutes);
-        }
+<!-- Leaflet JS -->
+<script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+<!-- PolylineDecorator plugin (version 1.6.0) -->
+<script src="https://unpkg.com/leaflet-polylinedecorator@1.6.0/dist/leaflet.polylineDecorator.js"></script>
+<script>
+    // Global variables
+    let map;
+    let routes = [];
+    let routesLayerGroup;
 
-        // Geocode a location using Nominatim.
-        async function geocode(query) {
-            const url = `https://nominatim.openstreetmap.org/search?format=json&limit=1&q=${encodeURIComponent(query)}`;
-            const response = await fetch(url, {
-                headers: { 'Accept-Language': 'en' }
-            });
-            const data = await response.json();
-            if (data && data.length > 0) {
-                return { lat: parseFloat(data[0].lat), lon: parseFloat(data[0].lon) };
+    // Initial JSON data
+    const initialData = {
+        "maxThickness": "3",
+        "routes": [
+            { "fromName": "new york", "fromLabel": "The big apple", "fromLat": 40.7127281, "fromLon": -74.0060152, "toName": "Netherlands", "toLabel": "", "toLat": 52.2434979, "toLon": 5.6343227, "volume": 3, "mode": "air", "color": "#ff0000" },
+            { "fromName": "Sydney", "fromLabel": "", "fromLat": -33.8698439, "fromLon": 151.2082848, "toName": "Netherlands", "toLabel": "", "toLat": 52.2434979, "toLon": 5.6343227, "volume": 2, "mode": "sea", "color": "#ff0000" },
+            { "fromName": "Italy", "fromLabel": "EU", "fromLat": 42.6384261, "fromLon": 12.674297, "toName": "Netherlands", "toLabel": "", "toLat": 52.2434979, "toLon": 5.6343227, "volume": 3, "mode": "road", "color": "#ff0000" }
+        ]
+    };
+
+    // Load initial data
+    function loadInitialData(data) {
+        routes = data.routes;
+        document.getElementById('maxThicknessInput').value = data.maxThickness;
+
+        updateRoutesTable();
+        drawRoutes();
+    }
+	
+    // Initialize the Leaflet map.
+    function initMap() {
+        map = L.map('map').setView([20, 0], 2);
+        L.tileLayer(
+            'https://{s}.basemaps.cartocdn.com/light_nolabels/{z}/{x}/{y}{r}.png',
+            { attribution: '© OpenStreetMap contributors, © CARTO' }
+        ).addTo(map);
+        routesLayerGroup = L.layerGroup().addTo(map);
+        map.on('zoomend moveend', drawRoutes);
+
+        // Load initial data
+        loadInitialData(initialData);
+    }
+
+    // Geocode a location using Nominatim.
+    async function geocode(query) {
+        const url = `https://nominatim.openstreetmap.org/search?format=json&limit=1&q=${encodeURIComponent(query)}`;
+        const response = await fetch(url, { headers: { 'Accept-Language': 'en' } });
+        const data = await response.json();
+        if (data && data.length > 0) {
+            return { lat: parseFloat(data[0].lat), lon: parseFloat(data[0].lon) };
+        } else {
+            throw new Error("Location not found: " + query);
+        }
+    }
+
+    // Compute a set of points along a quadratic Bézier curve.
+    function computeQuadraticBezierPoints(p0, p1, p2, numPoints) {
+        let points = [];
+        for (let i = 0; i <= numPoints; i++) {
+            let t = i / numPoints;
+            let x = (1 - t) * (1 - t) * p0.x + 2 * (1 - t) * t * p1.x + t * t * p2.x;
+            let y = (1 - t) * (1 - t) * p0.y + 2 * (1 - t) * t * p1.y + t * t * p2.y;
+            points.push(L.point(x, y));
+        }
+        return points;
+    }
+
+    // Draw all routes on the map.
+    function drawRoutes() {
+        routesLayerGroup.clearLayers();
+        let maxThickness = parseFloat(document.getElementById('maxThicknessInput').value) || 10;
+        let volumes = routes.map(r => r.volume);
+        let minVolume = volumes.length ? Math.min(...volumes) : 0;
+        let maxVolume = volumes.length ? Math.max(...volumes) : 0;
+        routes.forEach(route => {
+            let startLatLng = L.latLng(route.fromLat, route.fromLon);
+            let endLatLng = L.latLng(route.toLat, route.toLon);
+            let fromMarker = L.circleMarker(startLatLng, { radius: 5, color: 'blue', fillColor: 'blue', fillOpacity: 1 });
+            let fromLabel = route.fromName;
+            fromMarker.bindTooltip(fromLabel, { permanent: true, direction: 'right', offset: [5, 0] }).openTooltip();
+            fromMarker.addTo(routesLayerGroup);
+            let toMarker = L.circleMarker(endLatLng, { radius: 5, color: 'blue', fillColor: 'blue', fillOpacity: 1 });
+            let toLabel = route.toName;
+            toMarker.bindTooltip(toLabel, { permanent: true, direction: 'left', offset: [-5, 0] }).openTooltip();
+            toMarker.addTo(routesLayerGroup);
+            let p0 = map.latLngToLayerPoint(startLatLng);
+            let p2 = map.latLngToLayerPoint(endLatLng);
+            let midPoint = L.point((p0.x + p2.x) / 2, (p0.y + p2.y) / 2);
+            let dx = p2.x - p0.x;
+            let dy = p2.y - p0.y;
+            let len = Math.sqrt(dx * dx + dy * dy);
+            if (len === 0) len = 1;
+            let normX = -dy / len;
+            let normY = dx / len;
+            let offset = len * 0.25;
+            let controlPoint = L.point(midPoint.x + normX * offset, midPoint.y + normY * offset);
+            let bezierLayerPoints = computeQuadraticBezierPoints(p0, controlPoint, p2, 50);
+            let bezierLatLngs = bezierLayerPoints.map(pt => map.layerPointToLatLng(pt));
+            let thickness;
+            if (maxVolume === minVolume) {
+                thickness = maxThickness;
             } else {
-                throw new Error("Location not found: " + query);
+                thickness = 1 + (route.volume - minVolume) / (maxVolume - minVolume) * (maxThickness - 1);
             }
-        }
-
-        // Compute a set of points along a quadratic Bézier curve.
-        // p0, p1, and p2 are L.Point objects (in layer pixel coordinates).
-        function computeQuadraticBezierPoints(p0, p1, p2, numPoints) {
-            let points = [];
-            for (let i = 0; i <= numPoints; i++) {
-                let t = i / numPoints;
-                let x = (1 - t) * (1 - t) * p0.x + 2 * (1 - t) * t * p1.x + t * t * p2.x;
-                let y = (1 - t) * (1 - t) * p0.y + 2 * (1 - t) * t * p1.y + t * t * p2.y;
-                points.push(L.point(x, y));
-            }
-            return points;
-        }
-
-        // Draw all routes on the map.
-        function drawRoutes() {
-            // Clear previous layers.
-            routesLayerGroup.clearLayers();
-            // Get the global maximum thickness from the input (default 10)
-            let maxThickness = parseFloat(document.getElementById('maxThicknessInput').value) || 10;
-            // Determine the minimum and maximum volumes among all routes.
-            let volumes = routes.map(r => r.volume);
-            let minVolume = volumes.length ? Math.min(...volumes) : 0;
-            let maxVolume = volumes.length ? Math.max(...volumes) : 0;
-            routes.forEach(route => {
-                let startLatLng = L.latLng(route.fromLat, route.fromLon);
-                let endLatLng = L.latLng(route.toLat, route.toLon);
-                // Add markers (dots) for the from and to locations.
-                let fromMarker = L.circleMarker(startLatLng, {
-                    radius: 5,
-                    color: 'blue',
-                    fillColor: 'blue',
-                    fillOpacity: 1
-                });
-                let fromLabel = (route.fromLabel && route.fromLabel.trim() !== "") ? route.fromLabel : route.fromName;
-                fromMarker.bindTooltip(fromLabel, {
-                    permanent: true,
-                    direction: 'right',
-                    offset: [5, 0]
-                }).openTooltip();
-                fromMarker.addTo(routesLayerGroup);
-                let toMarker = L.circleMarker(endLatLng, {
-                    radius: 5,
-                    color: 'blue',
-                    fillColor: 'blue',
-                    fillOpacity: 1
-                });
-                let toLabel = (route.toLabel && route.toLabel.trim() !== "") ? route.toLabel : route.toName;
-                toMarker.bindTooltip(toLabel, {
-                    permanent: true,
-                    direction: 'left',
-                    offset: [-5, 0]
-                }).openTooltip();
-                toMarker.addTo(routesLayerGroup);
-                // Convert start and end to layer points (pixel coordinates).
-                let p0 = map.latLngToLayerPoint(startLatLng);
-                let p2 = map.latLngToLayerPoint(endLatLng);
-                // Compute the midpoint between start and end.
-                let midPoint = L.point((p0.x + p2.x) / 2, (p0.y + p2.y) / 2);
-                // Compute the vector from start to end and its length.
-                let dx = p2.x - p0.x;
-                let dy = p2.y - p0.y;
-                let len = Math.sqrt(dx * dx + dy * dy);
-                if (len === 0) len = 1; // Avoid division by zero
-                // Compute a perpendicular vector (using (-dy, dx)).
-                let normX = -dy / len;
-                let normY = dx / len;
-                // Define an offset proportional to the distance (adjust factor as needed).
-                let offset = len * 0.25;
-                // Calculate the control point for the curve in pixel coordinates.
-                let controlPoint = L.point(midPoint.x + normX * offset, midPoint.y + normY * offset);
-                // Compute the Bézier curve points (using 50 sample points).
-                let bezierLayerPoints = computeQuadraticBezierPoints(p0, controlPoint, p2, 50);
-                // Convert the curve points back to geographic coordinates.
-                let bezierLatLngs = bezierLayerPoints.map(pt => map.layerPointToLatLng(pt));
-                // Compute the thickness for this route.
-                let thickness;
-                if (maxVolume === minVolume) {
-                    thickness = maxThickness;
-                } else {
-                    thickness = 1 + (route.volume - minVolume) / (maxVolume - minVolume) * (maxThickness - 1);
-                }
-                let color = route.color || 'red'; // Use the color from the route object
-                // Create a polyline for the route using the computed thickness.
-                let polyline = L.polyline(bezierLatLngs, {
-                    color: color,
-                    weight: thickness,
-                    opacity: 0.8
-                }).addTo(routesLayerGroup);
-                // Add an arrowhead at the end of the curve using PolylineDecorator.
-                let decorator = L.polylineDecorator(polyline, {
-                    patterns: [
-                        {
-                            offset: '100%',
-                            repeat: 0,
-                            symbol: L.Symbol.arrowHead({
-                                pixelSize: 10,
-                                polygon: false,
-                                pathOptions: { stroke: true, color: color, weight: thickness }
-                            })
-                        }
-                    ]
-                });
-                decorator.addTo(routesLayerGroup);
-                // If a mode of transport is selected (other than "none"),
-                // add an icon at the midpoint of the curved line.
-                if (route.mode && route.mode !== "none") {
-                    // Use the middle point of the bezier curve for placing the icon.
-                    let midIndex = Math.floor(bezierLatLngs.length / 2);
-                    let iconLatLng = bezierLatLngs[midIndex];
-                    let iconHtml = "";
-                    if (route.mode === "air") {
-                        iconHtml = '<i class="fa-solid fa-plane" style="color: blue; font-size: 24px;"></i>';
-                    } else if (route.mode === "road") {
-                        iconHtml = '<i class="fa-solid fa-truck" style="color: green; font-size: 24px;"></i>';
-                    } else if (route.mode === "sea") {
-                        iconHtml = '<i class="fa-solid fa-ship" style="color: navy; font-size: 24px;"></i>';
+            let color = route.color || 'red';
+            let polyline = L.polyline(bezierLatLngs, { color: color, weight: thickness, opacity: 0.8 }).addTo(routesLayerGroup);
+            let decorator = L.polylineDecorator(polyline, {
+                patterns: [
+                    {
+                        offset: '100%',
+                        repeat: 0,
+                        symbol: L.Symbol.arrowHead({ pixelSize: 10, polygon: false, pathOptions: { stroke: true, color: color, weight: thickness } })
                     }
-                    if (iconHtml !== "") {
-                        let transportIcon = L.divIcon({
-                            html: iconHtml,
-                            className: "transport-icon",
-                            iconSize: [24, 24]
-                        });
-                        L.marker(iconLatLng, { icon: transportIcon }).addTo(routesLayerGroup);
-                    }
+                ]
+            });
+            decorator.addTo(routesLayerGroup);
+            if (route.mode && route.mode !== "none") {
+                let midIndex = Math.floor(bezierLatLngs.length / 2);
+                let iconLatLng = bezierLatLngs[midIndex];
+                let iconHtml = "";
+                if (route.mode === "air") {
+                    iconHtml = '<i class="fa-solid fa-plane" style="color: blue; font-size: 24px;"></i>';
+                } else if (route.mode === "road") {
+                    iconHtml = '<i class="fa-solid fa-truck" style="color: green; font-size: 24px;"></i>';
+                } else if (route.mode === "sea") {
+                    iconHtml = '<i class="fa-solid fa-ship" style="color: navy; font-size: 24px;"></i>';
                 }
-            });
-        }
-
-        // Update the routes table in the left panel.
-        function updateRoutesTable() {
-            const tbody = document.querySelector('#routesTable tbody');
-            tbody.innerHTML = "";
-            routes.forEach(route => {
-                let row = document.createElement('tr');
-                row.innerHTML = `<td>${route.fromName}</td>
-                <td>${route.fromLabel || ""}</td>
-                <td>${route.toName}</td>
-                <td>${route.toLabel || ""}</td>
-                <td>${route.volume}</td>
-                <td>${(route.mode && route.mode !== "none") ? route.mode : ""}</td>`;
-                tbody.appendChild(row);
-            });
-        }
-
-        // Add a new route (geocode both locations, save the data, and update the map).
-        async function addRoute() {
-            const fromInput = document.getElementById('fromInput').value.trim();
-            const fromNameInput = document.getElementById('fromNameInput').value.trim();
-            const toInput = document.getElementById('toInput').value.trim();
-            const toNameInput = document.getElementById('toNameInput').value.trim();
-            const volumeInput = document.getElementById('volumeInput').value.trim();
-            const modeInput = document.getElementById('modeInput').value;
-            const colorInput = document.getElementById('colorInput').value;
-            if (!fromInput || !toInput || !volumeInput) {
-                alert("Please fill in the required fields (From, To, Volume).");
-                return;
+                if (iconHtml !== "") {
+                    let transportIcon = L.divIcon({ html: iconHtml, className: "transport-icon", iconSize: [24, 24] });
+                    L.marker(iconLatLng, { icon: transportIcon }).addTo(routesLayerGroup);
+                }
             }
+        });
+    }
+
+    // Update the routes table in the left panel.
+    function updateRoutesTable() {
+        const tbody = document.querySelector('#routesTable tbody');
+        tbody.innerHTML = "";
+        routes.forEach(route => {
+            let row = document.createElement('tr');
+            row.innerHTML = `<td>${route.fromName}</td> 
+                             <td>${route.fromLabel || ""}</td> 
+                             <td>${route.toName}</td> 
+                             <td>${route.toLabel || ""}</td> 
+                             <td>${route.volume}</td> 
+                             <td>${(route.mode && route.mode !== "none") ? route.mode : ""}</td>`;
+            tbody.appendChild(row);
+        });
+    }
+
+    // Add a new route
+    async function addRoute() {
+        const fromInput = document.getElementById('fromInput').value.trim();
+        const fromNameInput = document.getElementById('fromNameInput').value.trim();
+        const toInput = document.getElementById('toInput').value.trim();
+        const toNameInput = document.getElementById('toNameInput').value.trim();
+        const volumeInput = document.getElementById('volumeInput').value.trim();
+        const modeInput = document.getElementById('modeInput').value;
+        const colorInput = document.getElementById('colorInput').value;
+        if (!fromInput || !toInput || !volumeInput) {
+            alert("Please fill in the required fields (From, To, Volume).");
+            return;
+        }
+        try {
+            const fromCoords = await geocode(fromInput);
+            const toCoords = await geocode(toInput);
+            const route = {
+                fromName: fromInput,
+                fromLabel: fromNameInput,
+                fromLat: fromCoords.lat,
+                fromLon: fromCoords.lon,
+                toName: toInput,
+                toLabel: toNameInput,
+                toLat: toCoords.lat,
+                toLon: toCoords.lon,
+                volume: parseFloat(volumeInput),
+                mode: modeInput,
+                color: colorInput
+            };
+            routes.push(route);
+            updateRoutesTable();
+            drawRoutes();
+        } catch (error) {
+            alert(error.message);
+        }
+    }
+
+    // Clear all routes
+    function clearAllRoutes() {
+        routes = [];
+        updateRoutesTable();
+        drawRoutes();
+    }
+
+    // Download the routes data as a JSON file.
+    function downloadData() {
+        const dataObj = { maxThickness: document.getElementById('maxThicknessInput').value, routes: routes };
+        const dataStr = JSON.stringify(dataObj, null, 2);
+        const blob = new Blob([dataStr], { type: "application/json" });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = 'routes.json';
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+    }
+
+    // Handle uploading a JSON file to load routes.
+    function handleFileUpload(event) {
+        const file = event.target.files[0];
+        if (!file) return;
+        const reader = new FileReader();
+        reader.onload = function(e) {
             try {
-                // Geocode both the "from" and "to" locations.
-                const fromCoords = await geocode(fromInput);
-                const toCoords = await geocode(toInput);
-                // Create a new route object with optional custom labels, transport mode, and color.
-                const route = {
-                    fromName: fromInput,
-                    fromLabel: fromNameInput,
-                    fromLat: fromCoords.lat,
-                    fromLon: fromCoords.lon,
-                    toName: toInput,
-                    toLabel: toNameInput,
-                    toLat: toCoords.lat,
-                    toLon: toCoords.lon,
-                    volume: parseFloat(volumeInput),
-                    mode: modeInput,
-                    color: colorInput
-                };
-                // Save and display the new route.
-                routes.push(route);
+                const jsonData = JSON.parse(e.target.result);
+                if (jsonData.routes) {
+                    routes = jsonData.routes;
+                    if (jsonData.maxThickness) {
+                        document.getElementById('maxThicknessInput').value = jsonData.maxThickness;
+                    }
+                } else if (Array.isArray(jsonData)) {
+                    routes = jsonData;
+                } else {
+                    alert("Invalid file format.");
+                    return;
+                }
                 updateRoutesTable();
                 drawRoutes();
-            } catch (error) {
-                alert(error.message);
+            } catch (err) {
+                alert("Error reading file: " + err);
             }
-        }
+        };
+        reader.readAsText(file);
+    }
 
-        // Download the routes data (and the global max thickness) as a JSON file.
-        function downloadData() {
-            const dataObj = {
-                maxThickness: document.getElementById('maxThicknessInput').value,
-                routes: routes
-            };
-            const dataStr = JSON.stringify(dataObj, null, 2);
-            const blob = new Blob([dataStr], { type: "application/json" });
-            const url = URL.createObjectURL(blob);
-            const a = document.createElement('a');
-            a.href = url;
-            a.download = 'routes.json';
-            document.body.appendChild(a);
-            a.click();
-            document.body.removeChild(a);
-            URL.revokeObjectURL(url);
-        }
+    // Set up event listeners
+    document.getElementById('addRouteBtn').addEventListener('click', addRoute);
+    document.getElementById('downloadBtn').addEventListener('click', downloadData);
+    document.getElementById('uploadInput').addEventListener('change', handleFileUpload);
+    document.getElementById('maxThicknessInput').addEventListener('change', drawRoutes);
+    document.getElementById('clearRoutesBtn').addEventListener('click', clearAllRoutes);
 
-        // Handle uploading a JSON file to load routes.
-        function handleFileUpload(event) {
-            const file = event.target.files[0];
-            if (!file) return;
-            const reader = new FileReader();
-            reader.onload = function (e) {
-                try {
-                    const jsonData = JSON.parse(e.target.result);
-                    // If the JSON has a "routes" property, assume it's an object containing settings.
-                    if (jsonData.routes) {
-                        routes = jsonData.routes;
-                        if (jsonData.maxThickness) {
-                            document.getElementById('maxThicknessInput').value = jsonData.maxThickness;
-                        }
-                    } else if (Array.isArray(jsonData)) {
-                        routes = jsonData;
-                    } else {
-                        alert("Invalid file format.");
-                        return;
-                    }
-                    updateRoutesTable();
-                    drawRoutes();
-                } catch (err) {
-                    alert("Error reading file: " + err);
-                }
-            };
-            reader.readAsText(file);
-        }
-
-        // Set up event listeners for buttons and file input.
-        document.getElementById('addRouteBtn').addEventListener('click', addRoute);
-        document.getElementById('downloadBtn').addEventListener('click', downloadData);
-        document.getElementById('uploadInput').addEventListener('change', handleFileUpload);
-        document.getElementById('maxThicknessInput').addEventListener('change', drawRoutes);
-
-
- 
-
-    // Initialize the map when the page loads.
+    // Initialize the map when the page loads
     window.onload = initMap;
-  </script>
+</script>
 </body>
 </html>
