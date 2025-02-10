@@ -153,11 +153,11 @@
             let startLatLng = L.latLng(route.fromLat, route.fromLon);
             let endLatLng = L.latLng(route.toLat, route.toLon);
             let fromMarker = L.circleMarker(startLatLng, { radius: 5, color: 'blue', fillColor: 'blue', fillOpacity: 1 });
-            let fromLabel = route.fromName;
+            let fromLabel = route.fromLabel && route.fromLabel.trim() !== "" ? route.fromLabel : route.fromName;
             fromMarker.bindTooltip(fromLabel, { permanent: true, direction: 'right', offset: [5, 0] }).openTooltip();
             fromMarker.addTo(routesLayerGroup);
             let toMarker = L.circleMarker(endLatLng, { radius: 5, color: 'blue', fillColor: 'blue', fillOpacity: 1 });
-            let toLabel = route.toName;
+            let toLabel = route.toLabel && route.toLabel.trim() !== "" ? route.toLabel : route.toName;
             toMarker.bindTooltip(toLabel, { permanent: true, direction: 'left', offset: [-5, 0] }).openTooltip();
             toMarker.addTo(routesLayerGroup);
             let p0 = map.latLngToLayerPoint(startLatLng);
